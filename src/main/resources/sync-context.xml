@@ -1,0 +1,46 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<beans xmlns="http://www.springframework.org/schema/beans"
+       xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+       xmlns:int="http://www.springframework.org/schema/integration"
+       xsi:schemaLocation="
+   http://www.springframework.org/schema/beans
+   http://www.springframework.org/schema/beans/spring-beans.xsd
+   http://www.springframework.org/schema/integration
+   http://www.springframework.org/schema/integration/spring-integration.xsd
+   ">
+
+    <!-- Gateway to the Synchronization process -->
+
+    <bean id="syncInitializer" class="nl.gridshore.integration.BaseSyncInitializer">
+        <constructor-arg index="0" ref="startSync"/>
+        <constructor-arg index="1" ref="sourceApi"/>
+        <constructor-arg index="2" ref="targetApi"/>
+    </bean>
+
+    <!-- Start the synchronization process -->
+    <int:channel id="startSync"/>
+
+    <int:splitter input-channel="startSync" output-channel="transformChannel"/>
+    <int:channel id="transformChannel"/>
+
+    <!-- transformer-->
+
+    <!-- endpoint -->
+    <int:service-activator input-channel="transformChannel" output-channel="aggregateResultsChannel"
+                           ref="storeSyncResultsEndpoint" method="storeItems" requires-reply="true"/>
+    <int:channel id="aggregateResultsChannel"/>
+
+    <int:aggregator input-channel="aggregateResultsChannel" output-channel="statisticsChannel"
+                    ref="gatherStatisticsAggregator"/>
+
+    <int:channel id="statisticsChannel"/>
+
+    <int:service-activator input-channel="statisticsChannel" ref="statisticsEndpoint" method="handleStatistics"/>
+
+
+    <!-- helpers -->
+    <bean id="statisticsEndpoint" class="nl.gridshore.integration.StatisticsEndpoint"/>
+    <bean id="gatherStatisticsAggregator" class="nl.gridshore.integration.GatherStatisticsAggregator"/>
+    <bean id="storeSyncResultsEndpoint" class="nl.gridshore.integration.StoreSyncResultsEndpoint"/>
+
+</beans>

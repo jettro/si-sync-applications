@@ -4,3 +4,10 @@
 *.jar
 *.war
 *.ear
+
+# Intellij files #
+.idea/*
+atlassian-ide-plugin.xml
+*.iml
+
+
