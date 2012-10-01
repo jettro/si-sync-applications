@@ -10,7 +10,6 @@
    ">
 
     <!-- Gateway to the Synchronization process -->
-
     <bean id="syncInitializer" class="nl.gridshore.integration.BaseSyncInitializer">
         <constructor-arg index="0" ref="startSync"/>
         <constructor-arg index="1" ref="sourceApi"/>
@@ -20,27 +19,39 @@
     <!-- Start the synchronization process -->
     <int:channel id="startSync"/>
 
-    <int:splitter input-channel="startSync" output-channel="transformChannel"/>
-    <int:channel id="transformChannel"/>
+    <int:splitter input-channel="startSync" output-channel="syncStartedChannel"/>
+    <int:channel id="syncStartedChannel"/>
 
     <!-- transformer-->
+    <int:transformer input-channel="syncStartedChannel" output-channel="syncTransformedChannel"
+                     ref="targetToSourceTransformer"/>
+    <int:channel id="syncTransformedChannel"/>
+    <int:header-value-router input-channel="syncTransformedChannel"
+                             default-output-channel="syncTransformedAndCheckedChannel" header-name="DISCARD_CHANNEL"/>
+    <int:channel id="syncTransformedAndCheckedChannel"/>
 
     <!-- endpoint -->
-    <int:service-activator input-channel="transformChannel" output-channel="aggregateResultsChannel"
-                           ref="storeSyncResultsEndpoint" method="storeItems" requires-reply="true"/>
-    <int:channel id="aggregateResultsChannel"/>
+    <int:service-activator input-channel="syncTransformedAndCheckedChannel" output-channel="syncResultsStoredChannel"
+                           ref="storeSyncResultsEndpoint" requires-reply="true"/>
+    <int:channel id="syncResultsStoredChannel"/>
 
-    <int:aggregator input-channel="aggregateResultsChannel" output-channel="statisticsChannel"
+    <int:aggregator input-channel="syncResultsStoredChannel" output-channel="syncResultsAggregatedChannel"
                     ref="gatherStatisticsAggregator"/>
 
-    <int:channel id="statisticsChannel"/>
+    <int:channel id="syncResultsAggregatedChannel"/>
 
-    <int:service-activator input-channel="statisticsChannel" ref="statisticsEndpoint" method="handleStatistics"/>
-
+    <int:service-activator input-channel="syncResultsAggregatedChannel" ref="statisticsEndpoint"
+                           method="handleStatistics"/>
 
     <!-- helpers -->
     <bean id="statisticsEndpoint" class="nl.gridshore.integration.StatisticsEndpoint"/>
     <bean id="gatherStatisticsAggregator" class="nl.gridshore.integration.GatherStatisticsAggregator"/>
-    <bean id="storeSyncResultsEndpoint" class="nl.gridshore.integration.StoreSyncResultsEndpoint"/>
+    <!--<bean id="storeSyncResultsEndpoint" class="nl.gridshore.integration.StoreSyncResultsEndpoint"/>-->
 
+    <!-- Logging -->
+    <!--<int:wire-tap pattern="sync*" channel="logger"/>-->
+    <int:channel id="logger"/>
+    <int:service-activator input-channel="logger">
+        <bean class="nl.gridshore.integration.LogMe"/>
+    </int:service-activator>
 </beans>

@@ -45,7 +45,10 @@ public class BaseSyncInitializer<T, E> implements SyncInitialization<E> {
     }
 
     private void sendMessage(List<T> itemsToSync) {
-        Message message = MessageBuilder.withPayload(itemsToSync).setHeader(Constants.START_TIME_HEADER_KEY, new DateTime()).build();
+        Message message = MessageBuilder.withPayload(itemsToSync)
+                .setHeader(Constants.START_TIME_HEADER_KEY, new DateTime())
+//                .setHeader("ERROR_CHANNEL", "aggregateResultsChannel")
+                .build();
         channel.send(message);
     }
 }

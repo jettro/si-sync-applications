@@ -1,13 +1,26 @@
 package nl.gridshore.integration;
 
+import org.springframework.integration.Message;
+import org.springframework.integration.annotation.ServiceActivator;
+import org.springframework.integration.support.MessageBuilder;
+
 /**
  * @author Jettro Coenradie
  */
-public class StoreSyncResultsEndpoint {
-    private boolean state = true;
+public abstract class StoreSyncResultsEndpoint<T> {
 
-    public boolean storeItems(Object payload) {
-        System.out.println(payload.toString());
-        return state = !state;
+    @ServiceActivator
+    public Message<?> storeItems(Message<T> message) {
+        try {
+            Object result = doStoreItem(message.getPayload());
+            if (result == null) {
+                result = "Success";
+            }
+            return MessageBuilder.withPayload(result).copyHeaders(message.getHeaders()).build();
+        } catch (Exception e) {
+            return MessageBuilder.fromMessage(message).setHeader("DISCARD_CHANNEL", "syncResultsStoredChannel").build();
+        }
     }
+
+    protected abstract Object doStoreItem(T item);
 }
