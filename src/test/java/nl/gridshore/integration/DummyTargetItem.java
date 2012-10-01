@@ -3,10 +3,10 @@ package nl.gridshore.integration;
 /**
  * @author Jettro Coenradie
  */
-public class DummyItem {
+public class DummyTargetItem {
     private String name;
 
-    public DummyItem(String name) {
+    public DummyTargetItem(String name) {
         this.name = name;
     }
 
@@ -16,7 +16,7 @@ public class DummyItem {
 
     @Override
     public String toString() {
-        return "DummyItem{" +
+        return "DummyTargetItem{" +
                 "name='" + name + '\'' +
                 '}';
     }

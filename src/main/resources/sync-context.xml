@@ -46,7 +46,6 @@
     <!-- helpers -->
     <bean id="statisticsEndpoint" class="nl.gridshore.integration.StatisticsEndpoint"/>
     <bean id="gatherStatisticsAggregator" class="nl.gridshore.integration.GatherStatisticsAggregator"/>
-    <!--<bean id="storeSyncResultsEndpoint" class="nl.gridshore.integration.StoreSyncResultsEndpoint"/>-->
 
     <!-- Logging -->
     <!--<int:wire-tap pattern="sync*" channel="logger"/>-->
